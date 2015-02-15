@@ -1,0 +1,33 @@
+---
+- name: yum install utils
+  yum: name={{ item }} state=present
+  with_items:
+    - sysstat
+    - vnstat
+
+- name: Start vnstat
+  service: name=vnstat state=started enabled=true
+
+- name: Check god installed
+  shell: gem list | grep god
+  register: god_is_present
+  ignore_errors: true
+  changed_when: false
+
+- name: Install god
+  shell: gem install god --no-document
+  when: god_is_present|failed
+
+- name: Create dest dir for god
+  file: path={{ item }} state=directory
+  with_items:
+    - "{{nefmon_god_dir}}"
+    - "{{nefmon_god_dir}}/conf"
+    - "{{nefmon_god_dir}}/script"
+
+- name: Set god scripts
+  template: src="god/{{item}}" dest="{{nefmon_god_dir}}/{{item}}"
+  with_items:
+    - readme.txt
+    - conf/nefmon-log-client.god
+    - script/gather_metrics.rb

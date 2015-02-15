@@ -1,0 +1,23 @@
+# tdagent settings
+tdagent_host: localhost
+tdagent_port: 24224
+
+# directory to place god scripts
+nefmon_god_dir: /opt/nefmon-log-client
+# max memory to allow the script to use
+nefmon_god_mem_max: "50.megabytes"
+# max cpu to allow the script to use
+nefmon_god_cpu_max: "10.percent"
+
+# change this to your assigned credential info
+nefmon_log_shared_key: your_nefmon_log_shared_key
+nefmon_log_username: your_nefmon_log_username
+nefmon_log_password: your_nefmon_log_password
+# change this to your assigned server names
+nefmon_log_servers:
+  - host: xxx.nefmon.io
+    port: yyyyy
+  - host: xxx.nefmon.io
+    port: yyyyy
+# change this to your assigned tag
+nefmon_root_tag: xxxxx

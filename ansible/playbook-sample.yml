@@ -1,0 +1,7 @@
+---
+- name: Setup nefmon log client
+  gather_facts: no
+  hosts: all
+  roles:
+    - td-agent
+    - nefmon-log-client

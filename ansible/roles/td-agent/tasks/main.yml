@@ -1,0 +1,41 @@
+---
+- name: Check td-agent installed
+  shell: rpm -q td-agent
+  register: tdagent_is_present
+  ignore_errors: true
+  changed_when: false
+
+- name: Install td-agent
+  shell:
+    curl -L http://toolbelt.treasuredata.com/sh/install-redhat-td-agent2.sh | sh
+  when: tdagent_is_present|failed
+
+- name: Check td-agent plugins installed
+  shell: /usr/sbin/td-agent-gem list | grep fluent-plugin-multiprocess
+  register: tdagent_plugin_is_present
+  ignore_errors: true
+  changed_when: false
+
+- name: Install td-agent plugins
+  shell: >
+    /usr/sbin/td-agent-gem install
+    fluent-plugin-flatten-hash
+    fluent-plugin-secure-forward
+    fluent-plugin-multiprocess --no-document
+  when: tdagent_plugin_is_present|failed
+
+# if you don't use td-agent for anything else, call this task.
+- name: Set conf file (single)
+  template: src=nefmon.conf dest=/etc/td-agent/td-agent.conf backup=yes
+  notify: restart td-agent
+
+# if you use td-agent for something else, use multiprocess mode.
+#- name: Set conf file1 (multi)
+#  template: src=td-agent-multi.conf dest=/etc/td-agent/td-agent.conf backup=yes
+#  notify: restart td-agent
+#- name: Set conf file2 (multi)
+#  template: src=nefmon.conf dest=/etc/td-agent/nefmon.conf
+#  notify: restart td-agent
+
+- name: Start td-agent
+  service: name=td-agent state=started enabled=true
