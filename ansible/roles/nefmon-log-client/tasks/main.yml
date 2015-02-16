@@ -18,6 +18,18 @@
   shell: gem install god --no-document
   when: god_is_present|failed
 
+- name: Check gems installed
+  shell: gem list | grep fluent-logger
+  register: gem_is_present
+  ignore_errors: true
+  changed_when: false
+
+- name: Install gems
+  shell: >
+    gem install
+    fluent-logger --no-document
+  when: gem_is_present|failed
+
 - name: Create dest dir for god
   file: path={{ item }} state=directory
   with_items:

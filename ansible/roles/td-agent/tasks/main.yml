@@ -30,10 +30,10 @@
   notify: restart td-agent
 
 # if you use td-agent for something else, use multiprocess mode.
-#- name: Set conf file1 (multi)
+#- name: Set conf file (multi) 1
 #  template: src=td-agent-multi.conf dest=/etc/td-agent/td-agent.conf backup=yes
 #  notify: restart td-agent
-#- name: Set conf file2 (multi)
+#- name: Set conf file (multi) 2
 #  template: src=nefmon.conf dest=/etc/td-agent/nefmon.conf
 #  notify: restart td-agent
 
