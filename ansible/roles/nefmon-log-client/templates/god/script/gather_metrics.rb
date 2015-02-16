@@ -59,8 +59,8 @@ def gather_metrics()
       disk_info = lines[0].strip.split(/\s+/)
       metrics = {
         #in gigabytes
-        "disk_total" => (disk_info[1].to_i / 1024.0 / 1024.0).round(2),
-        "disk_used"  => (disk_info[2].to_i / 1024.0 / 1024.0).round(2)
+        "total" => (disk_info[1].to_i / 1024.0 / 1024.0).round(2),
+        "used"  => (disk_info[2].to_i / 1024.0 / 1024.0).round(2)
       }
       Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.disk_usage", metrics)
     }
