@@ -6,7 +6,8 @@ Fluent::Logger::FluentLogger.open(
   :port => {{ tdagent_port }}
 )
 $root_tag = '{{ nefmon_root_tag }}'
-$server_label = '{{ nefmon_server_label }}'
+$app_tag = '{{ nefmon_app_tag }}'
+$server_tag = '{{ nefmon_server_tag }}'
 
 def gather_metrics()
   # cpu
@@ -20,7 +21,7 @@ def gather_metrics()
         "iowait" => cpu_info[15].to_i,
         "steal"  => cpu_info[16].to_i
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.cpu", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.cpu", metrics)
     }
   }
 
@@ -33,7 +34,7 @@ def gather_metrics()
         "five"    => la_info[1].to_f,
         "fifteen" => la_info[2].to_f
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.loadavg", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.loadavg", metrics)
     }
   }
 
@@ -46,7 +47,7 @@ def gather_metrics()
         "total" => mem_info[1].to_i,
         "used"  => mem_info[2].to_i
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.mem_usage", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.mem_usage", metrics)
     }
   }
 
@@ -62,7 +63,7 @@ def gather_metrics()
         "total" => (disk_info[1].to_i / 1024.0 / 1024.0).round(2),
         "used"  => (disk_info[2].to_i / 1024.0 / 1024.0).round(2)
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.disk_usage", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.disk_usage", metrics)
     }
   }
 
@@ -78,7 +79,7 @@ def gather_metrics()
         "await"  => iostat[9].to_f, #millisec
         "p_util" => iostat[11].to_f  #percentage
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.iostat", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.iostat", metrics)
     }
   }
 
@@ -107,7 +108,7 @@ def gather_metrics()
         "in_kbit_ps"    => in_kbit_ps,
         "out_kbit_ps"   => out_kbit_ps
       }
-      Fluent::Logger.post("#{$root_tag}.#{$server_label}.os.eth0", metrics)
+      Fluent::Logger.post("#{$root_tag}.#{$app_tag}.#{$server_tag}.os.eth0", metrics)
     }
   }
 end
