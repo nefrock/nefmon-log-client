@@ -1,8 +1,6 @@
 # nefmon-log-client
 Tools for setting up servers to send logs to nefmon.
 
-(色々追記中)
-
 ansibleディレクトリ内のplaybookを実行すると、以下のツールがインストールされます。
 * td-agent
 * god
