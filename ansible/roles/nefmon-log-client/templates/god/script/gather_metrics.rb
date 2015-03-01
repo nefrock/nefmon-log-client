@@ -8,18 +8,23 @@ class MetricsCollector
       :port => {{ tdagent_port }}
     )
 
-    @interval = 10
-
     @root_tag = '{{ nefmon_root_tag }}'
     @app_tag = '{{ nefmon_app_tag }}'
     @server_tag = '{{ nefmon_server_tag }}'
 
+    @interval = 10
+
+    # we'll capture eth0 in this sample.
+    @nw_target_interface = 'eth0'
+    @nw_metrics = nil
   end
 
   def start()
+    @nw_metrics = fetchNetworkMetrics()
+
     while true do
-      gather_metrics()
       sleep @interval
+      gather_metrics()
     end
   end
 
@@ -99,33 +104,47 @@ class MetricsCollector
 
     # network
     Thread.new {
-      # we'll capture eth0 in this sample.
-      IO.popen('vnstat -i eth0 -tr 5') { |io|
-        lines = io.readlines
-        in_info = lines[3].strip.split(/\s+/)
-        out_info = lines[4].strip.split(/\s+/)
+      nw_prev = @nw_metrics
+      @nw_metrics = fetchNetworkMetrics()
 
-        #outputs will be in Gbit, Mbit, or kbit. so unify it to Kbit.
-        in_raw = in_info[1].to_f
-        in_unit = in_info[2][0].upcase
-        multi = in_unit == "G" ? 1000000.0 : (in_unit == "M" ? 1000.0 : 1.0)
-        in_kbit_ps = in_raw * multi
+      prev = nw_prev[@nw_target_interface]
+      current = @nw_metrics[@nw_target_interface]
+      # Kbit/s
+      rx_kbit = (current["rx_bytes"] - prev["rx_bytes"]).to_f / 1000 * 8 / @interval
+      tx_kbit = (current["tx_bytes"] - prev["tx_bytes"]).to_f / 1000 * 8 / @interval
+      rx_packets = (current["rx_pkts"] - prev["rx_pkts"]).to_f / @interval
+      tx_packets = (current["tx_pkts"] - prev["tx_pkts"]).to_f / @interval
 
-        out_raw = out_info[1].to_f
-        out_unit = out_info[2][0].upcase
-        multi = out_unit == "G" ? 1000000.0 : (out_unit == "M" ? 1000.0 : 1.0)
-        out_kbit_ps = out_raw * multi
-
-        metrics = {
-          "in_packet_ps"  => in_info[3].to_i,
-          "out_packet_ps" => out_info[3].to_i,
-          "in_kbit_ps"    => in_kbit_ps,
-          "out_kbit_ps"   => out_kbit_ps
-        }
-        Fluent::Logger.post("#{@root_tag}.#{@app_tag}.#{@server_tag}.os.eth0", metrics)
+      metrics = {
+        "in_kbit_ps"    => rx_kbit.round(2),
+        "out_kbit_ps"   => tx_kbit.round(2),
+        "in_packet_ps"  => rx_packets.round(2),
+        "out_packet_ps" => tx_packets.round(2)
       }
+      Fluent::Logger.post("#{@root_tag}.#{@app_tag}.#{@server_tag}.os.#{@nw_target_interface}", metrics)
     }
   end
+
+  private
+    def fetchNetworkMetrics
+      ret = {}
+      cmd = "cat /proc/net/dev | grep #{@nw_target_interface}"
+      cmd_result = `#{cmd}`.strip
+      lines = cmd_result.split("\n")
+      lines.each do |line|
+        if_name, rest = line.strip.split(":")
+        next if rest == nil
+
+        stat_values = rest.strip.split(/\s+/)
+        ret[if_name] = {
+          "rx_bytes" => stat_values[0].to_i,
+          "rx_pkts" => stat_values[1].to_i,
+          "tx_bytes" => stat_values[8].to_i,
+          "tx_pkts" => stat_values[9].to_i,
+        }
+      end
+      return ret
+    end
 end
 
 MetricsCollector.new.start()
